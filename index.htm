@@ -1870,11 +1870,25 @@ renderer.render(scene,camera);
 setProgress(1,'Welcome home');
 await nextFrame();
 requestAnimationFrame(frame);
+/* Chrome/Safari only allow sound after a real click/tap, scrolling does not count.
+   So the loader ends with an "Enter" button: that one tap unlocks the music (and the film's sound). */
 setTimeout(()=>{
-    $('loader').classList.add('done'); document.body.classList.add('ready'); revealHero();
-    if(isFile) setTimeout(()=>toast('Tip: open this with VS Code “Live Server” so your photos and video appear inside the 3D rooms ♥', 7000), 3200);
-    setTimeout(()=>{ const l=$('loader'); if(l && l.parentNode) l.parentNode.removeChild(l); }, 2600);
-}, 650);
+    const ld = $('loader').firstElementChild, btn = document.createElement('button');
+    btn.textContent = 'Enter  ♥'; btn.setAttribute('aria-label','Enter the tour');
+    btn.style.cssText = 'all:unset;cursor:pointer;margin-top:30px;padding:14px 38px;border-radius:40px;font:500 .78rem Inter,sans-serif;letter-spacing:.3em;text-transform:uppercase;color:#fff1d6;background:linear-gradient(135deg,rgba(255,125,151,.9),rgba(201,24,74,.9));box-shadow:0 12px 34px rgba(201,24,74,.45);display:block;margin-left:auto;margin-right:auto;padding-left:calc(38px + .3em)';
+    ld.appendChild(btn); $('ldSub').textContent = bgmBroken ? 'Ready' : 'Ready, turn your sound on';
+    let entered = false;
+    const enter = ()=>{
+        if(entered) return; entered = true;
+        scrolledOnce = true;
+        if(!bgmBroken){ const p = bgm.play(); if(p && p.catch) p.catch(()=>{}); }
+        else toast('Could not load “'+CONFIG.bgmAudio+'”. Check the file name and that it sits next to index.html.', 7000);
+        $('loader').classList.add('done'); document.body.classList.add('ready'); revealHero();
+        if(isFile) setTimeout(()=>toast('Tip: open this with VS Code “Live Server” so your photos and video appear inside the 3D rooms ♥', 7000), 3200);
+        setTimeout(()=>{ const l=$('loader'); if(l && l.parentNode) l.parentNode.removeChild(l); }, 2600);
+    };
+    btn.addEventListener('click', enter); btn.focus({preventScroll:true});
+}, 400);
 
 })();
 
